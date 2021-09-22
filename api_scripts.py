@@ -135,8 +135,8 @@ def searchCars():
    query = 'select * from "users"'
    car = Car()
    dat = request.get_json()
-   fromTime = dt.datetime(dat['from']).timestamp()
-   toTime = dt.datetime(dat['to']).timestamp()
+   fromTime = dt.datetime.fromisoformat(dat['from']).timestamp()
+   toTime = dt.datetime.fromisoformat(dat['to']).timestamp()
    engine = create_engine('postgresql://postgres:tigerdb@localhost:5432/refyne_task')
    df = pd.read_sql_query(query,con=engine)
    df['b_timestamp'] = (df['b_timestamp'] - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
@@ -154,7 +154,7 @@ def searchCars():
 def bookCar():    
    dat = request.get_json()
    query = "select * from 'users' where cid='{}'".format(dat['cid'])
-   fromTime = dt.datetime(dat['from']).timestamp()
+   fromTime = dt.datetime.fromisoformat(dat['from']).timestamp()
    duration = dt.datetime.fromtimestamp(dat['duration'])
    toTime = (fromTime + duration)
    engine = create_engine('postgresql://postgres:tigerdb@localhost:5432/refyne_task')
@@ -171,8 +171,8 @@ def bookCar():
 def priceCalc():
    dat = request.get_json()
    car = Car()
-   fromTime = dt.datetime(dat['from']).timestamp()
-   toTime = dt.datetime(dat['to']).timestamp()
+   fromTime = dt.datetime.fromisoformat(dat['from']).timestamp()
+   toTime = dt.datetime.fromisoformat(dat['to']).timestamp()
    car_dat = car.get(dat['cid'])
    delta = ((toTime - fromTime).total_seconds())//60
    price = (car_dat['ph_price']*delta + car_dat['b_price'] + car_dat['deposit'])
@@ -181,9 +181,10 @@ def priceCalc():
 @app.route('/user/bookings' , methods=['GET'])
 def getUserBookings():
     dat = request.get_json()
-    uid = dat['uid']
+    uid = int(dat['uid'])
     user = User()
-    user_dat = user.get(uid)
+    user_dat = user.get(uid).get_data()
+    print(dict((user_dat).decode('utf-8')))
     return jsonify(user_dat[uid]["bookings"])
 
 @app.route('/car/bookings' , methods=['GET'])
@@ -196,7 +197,7 @@ def getCarBookings():
     return jsonify(df)
     
 
-dt.timedelta.total_seconds
+#dt.timedelta.total_seconds
 api.add_resource(User, '/')
 api.add_resource(Car, '/')
 
